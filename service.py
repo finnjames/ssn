@@ -28,16 +28,16 @@ class Service:
         self.users[new_user.uid] = new_user
         return new_user.uid
 
-    def get_challenge(self, uid, Y, A):
+    def get_challenge(self, uid, Y, A, q):
         self.users[uid].Y = Y
         self.users[uid].A = A
-        c = tools.get_random_int()
+        c = tools.get_random_int(q)
         self.users[uid].c = c
         return c
 
-    def verify(self, uid, g, z):
+    def verify(self, uid, g, p, z):
         _, _, Y, A, c = self.users[uid].to_tuple()
 
-        print(f"{Y=}, {A=}, {c=}, {g=}, {z=}")
+        print(f"{Y=}\n{A=}\n{c=}\n{g=}\n{p=}\n{z=}\n")
 
-        return A * Y**c % g == g**z % g
+        return A * pow(Y, c, p) % p == pow(g, z, p)

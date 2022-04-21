@@ -12,38 +12,45 @@ def main():
 
     NAME = "Alice"
 
-    # generate SSN
-    g = govt.Govt()
-    ssn = g.register(NAME)
-
-    s = service.Service()
-    uid = s.new_user(NAME)
-
-    # TODO: I feel like this is not how I should be doing this
+    # TODO: This is just to get a large prime number
     params = dh.generate_parameters(generator=2, key_size=512)
-    g = params.parameter_numbers().g
+    p = params.parameter_numbers().p
 
-    r = tools.get_random_int()
+    g = pow(tools.get_random_int(p), 2, p)
+    q = int((p + 1) / 2) - 1
 
-    Y = g**ssn % g
-    A = g**r % g
+    print(f"{pow(g, q - 1, p)==g}")
 
-    c = s.get_challenge(uid, Y, A)
+    print(f"g={g}, p={p}, q={q}")
 
-    z = r + (c * ssn) % g
+    # generate SSN
+    my_govt = govt.Govt()
+    ssn = my_govt.register(NAME, q)
 
-    if s.verify(uid, g, z):
-        print("Successfully verified!")
+    my_service = service.Service()
+    uid = my_service.new_user(NAME)
+
+    r = tools.get_random_int(q)
+
+    Y = pow(g, ssn, p)
+    A = pow(g, r, p)
+
+    c = my_service.get_challenge(uid, Y, A, q)
+
+    z = r + (c * ssn) % p
+
+    if my_service.verify(uid, g, p, z):
+        print("Successfully verified!\n")
         return 0
     else:
-        print("Failed to verify!")
+        print("Failed to verify!\n")
         return 1
 
     # show credentials anonymously
 
 
 if __name__ == "__main__":
-    REPETITIONS = 10
+    REPETITIONS = 100
     for i in range(REPETITIONS):
         if main() > 0:
             break
